@@ -19,7 +19,7 @@ class PostController extends Controller
     {
         $destinationPath = public_path('/post');
         $filename = '';
-        if($request->hasfile('file')){
+        if ($request->hasfile('file')) {
             $image = $request->file('file');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $image->move($destinationPath, $filename);
@@ -33,7 +33,7 @@ class PostController extends Controller
         return redirect()->route('home');
     }
 
-    public function addComment(Request $request,$id)
+    public function addComment(Request $request, $id)
     {
         $comment = new Comment();
         $comment->post_id = $id;
@@ -44,37 +44,61 @@ class PostController extends Controller
         return redirect()->route('home');
     }
 
-    public function userPost(){
-        $data = Post::where('user_id',Auth::user()->id)->get();
-        return view('view-post',compact('data'));
+    public function userPost()
+    {
+        $data = Post::where('user_id', Auth::user()->id)->get();
+        return view('view-post', compact('data'));
     }
 
     public function editPost($id)
     {
-        $data = Post::where('id',$id)->first();
-        return view('editPost',compact('data'));
+        $data = Post::where('id', $id)->first();
+        return view('editPost', compact('data'));
     }
 
     public function updatePost(Request $request)
     {
         $destinationPath = public_path('/post');
         $filename = '';
-        if($request->hasfile('file')){
+        if ($request->hasfile('file')) {
             $image = $request->file('file');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $image->move($destinationPath, $filename);
 
-            Post::where('id',$request->post_id)->update(['post'=>$filename,'desc'=>$request->desc]);
+            Post::where('id', $request->post_id)->update(['post' => $filename, 'desc' => $request->desc]);
         }
-        Post::where('id',$request->post_id)->update(['desc'=>$request->desc]);
+        Post::where('id', $request->post_id)->update(['desc' => $request->desc]);
 
         return redirect()->route('userPost');
     }
 
     public function deletePost($id)
     {
-        Post::where('id',$id)->delete();
+        Post::where('id', $id)->delete();
         return redirect()->route('home');
     }
 
+    public function likePost($id)
+    {
+        $arr = [];
+        $data = Post::find($id);
+        $like = $data->likes + 1;
+        $liked_by = json_decode($data->liked_by);
+        if($liked_by)
+        {
+            if(in_array(Auth::user()->id, $liked_by))
+            {
+                return redirect()->route('home');
+            }
+            array_push($liked_by,Auth::user()->id);
+            Post::where('id',$id)->update(['likes' => $like, 'liked_by' => json_encode($liked_by)]);
+    
+            return redirect()->route('home');
+        }
+        array_push($arr,Auth::user()->id);
+        Post::where('id',$id)->update(['likes' => $like, 'liked_by' => json_encode($arr)]);
+        return redirect()->route('home');
+    }
+
+    
 }

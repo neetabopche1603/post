@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+{{-- <?php
+
+use Illuminate\Support\Facades\Auth;
+
+$commentUser = Auth::user()->name;
+?>--}} 
+
 <div class="container">
     <div class="row justify-content-center">
         @if ($data)
@@ -11,10 +18,19 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ $row->desc }}</h5> 
                         @foreach ($row->comment as $res)  
-                            <p>{{ $res->comment }}</p>
+                            @php 
+                                $user =  App\Models\User::find($res->user_id);
+                            @endphp
+                            <p><span class="text-primary"><b>{{ $user->name }} :</b></span>&nbsp;{{ $res->comment }} </p>
                         @endforeach
                         <br />
-                        <a href="#" class="btn btn-primary btn-sm">Like</a>
+                        <p>{{ $row->likes }} Likes</p><p>{{ count($row->comment) }} Comments</p>
+
+                        <!-- <button id="{{$row->id}}" onclick="like(this.id)" class="btn btn-primary btn-sm"><i class="fa-solid fa-thumbs-up"></i></button> -->
+
+                        <a id="{{$row->id}}" href="/like/{{$row->id}}" class="btn btn-primary btn-sm"><i class="fa-solid fa-thumbs-up"></i></a>
+
+                        <input type="hidden" name="post_id" id="postId" value="{{ $row->id }}">
                         <form action="/add-comment/{{$row->id}}" method="post">
                             @csrf
                             <input type="text" name="comment" placeholder="Comment..." id="comment{{$row->id}}" />
@@ -27,4 +43,28 @@
         @endif
     </div>
 </div>
+@endsection
+
+@section('script')
+    <script>
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    function like(id)
+    {
+        $.ajax({
+            type:'POST',
+            url:'/like',
+            data: {post_id: id},
+            success:function(data) {
+                console.log(data);
+            }
+        });
+    }
+         
+    </script>
 @endsection

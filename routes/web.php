@@ -37,3 +37,4 @@ Route::post('/update-post',[App\Http\Controllers\PostController::class,'updatePo
 
 Route::get('/delete-post/{id}',[App\Http\Controllers\PostController::class,'deletePost'])->name('deletePost');
 
+Route::get('/like/{id}',[App\Http\Controllers\PostController::class,'likePost'])->name('likePost');
